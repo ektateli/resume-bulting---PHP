@@ -22,9 +22,8 @@ $pdf->SetMargins(15, 20, 15);
 $pdf->SetAutoPageBreak(TRUE, 20);
 $pdf->AddPage();
 
-// Use a professional font: 'helvetica' or 'times' (built-in in TCPDF)
-$fontName = 'helvetica'; // alternative: 'times'
-$pdf->SetFont($fontName, '', 10);
+// Use 'courier' font to avoid missing font files error
+$pdf->SetFont('courier', '', 10);
 
 // Colors
 $blue = [37, 99, 235];     // #2563eb
@@ -32,58 +31,47 @@ $darkBlue = [30, 64, 175]; // #1e40af
 $grayText = [85, 85, 85];  // #555
 $blackText = [51, 51, 51]; // #333
 
-// Get page width and margins for positioning
+// Page width and margins
 $pageWidth = $pdf->getPageWidth();
 $leftMargin = $pdf->getMargins()['left'];
 $rightMargin = $pdf->getMargins()['right'];
-$photoDiameter = 35;  // slightly smaller photo to save space
-$spacing = 4;         // spacing between elements
+$photoDiameter = 35;
+$spacing = 4;
 
 // Add profile photo on right side with circle border effect
 if (!empty($resume['photo']) && file_exists($resume['photo'])) {
-    $xPhoto = $pageWidth - $rightMargin - $photoDiameter; // right side
+    $xPhoto = $pageWidth - $rightMargin - $photoDiameter;
     $yPhoto = 20;
 
-    // Draw circle border for photo
     $pdf->SetDrawColor(...$blue);
     $pdf->SetLineWidth(0.8);
     $pdf->Circle($xPhoto + $photoDiameter / 2, $yPhoto + $photoDiameter / 2, $photoDiameter / 2, 0, 360, 'D');
 
-    // Place image inside circle
     $pdf->Image($resume['photo'], $xPhoto, $yPhoto, $photoDiameter, $photoDiameter, '', '', '', true, 300, '', false, false, 0, false, false, true);
 
-    // Text on left side (starting near left margin)
     $pdf->SetXY($leftMargin, $yPhoto + 5);
-
-    // Name (bigger, bold)
-    $pdf->SetFont($fontName, 'B', 16);
+    $pdf->SetFont('courier', 'B', 16);
     $pdf->SetTextColor(...$darkBlue);
     $pdf->Cell(0, 8, $resume['name'], 0, 1, 'L');
 
-    // Contact info (smaller)
-    $pdf->SetFont($fontName, '', 9);
+    $pdf->SetFont('courier', '', 9);
     $pdf->SetTextColor(...$grayText);
-    $contactInfo = 
+    $contactInfo =
         "Location: " . $resume['address'] . "\n" .
         "Phone: " . $resume['mobile'] . "\n" .
         "Email: " . $resume['email'];
     $pdf->MultiCell(0, 5, $contactInfo, 0, 'L', 0, 1);
 
-    // Move cursor below photo for next content
     $pdf->SetXY($leftMargin, $yPhoto + $photoDiameter + 10);
 } else {
-    // No photo, write from left margin
     $pdf->SetXY($leftMargin, 25);
-
-    // Name
-    $pdf->SetFont($fontName, 'B', 16);
+    $pdf->SetFont('courier', 'B', 16);
     $pdf->SetTextColor(...$darkBlue);
     $pdf->Cell(0, 8, $resume['name'], 0, 1, 'L');
 
-    // Contact info
-    $pdf->SetFont($fontName, '', 9);
+    $pdf->SetFont('courier', '', 9);
     $pdf->SetTextColor(...$grayText);
-    $contactInfo = 
+    $contactInfo =
         "Location: " . $resume['address'] . "\n" .
         "Phone: " . $resume['mobile'] . "\n" .
         "Email: " . $resume['email'];
@@ -92,16 +80,14 @@ if (!empty($resume['photo']) && file_exists($resume['photo'])) {
     $pdf->Ln(8);
 }
 
-// Helper function to add section with title and content, adjusted for compactness
-function addSection($pdf, $title, $content, $blueColor, $blackColor, $fontName) {
+// Helper function
+function addSection($pdf, $title, $content, $blueColor, $blackColor) {
     if (trim($content) === '') return;
 
-    // Section title - smaller than before
-    $pdf->SetFont($fontName, 'B', 12);
+    $pdf->SetFont('courier', 'B', 12);
     $pdf->SetTextColor(...$blueColor);
     $pdf->Cell(0, 6, $title, 0, 1, 'L');
 
-    // Underline
     $startX = $pdf->GetX();
     $currentY = $pdf->GetY();
     $pageWidth = $pdf->getPageWidth();
@@ -112,22 +98,21 @@ function addSection($pdf, $title, $content, $blueColor, $blackColor, $fontName) 
 
     $pdf->Ln(4);
 
-    // Section content, smaller font, less line spacing for compactness
-    $pdf->SetFont($fontName, '', 9);
+    $pdf->SetFont('courier', '', 9);
     $pdf->SetTextColor(...$blackColor);
     $pdf->MultiCell(0, 5, $content, 0, 'L', 0, 1);
 
     $pdf->Ln(6);
 }
 
-// Add resume sections with compact style to fit on one page
-addSection($pdf, 'Profile', $resume['profile'], $blue, $blackText, $fontName);
-addSection($pdf, 'Skills', $resume['skills'], $blue, $blackText, $fontName);
-addSection($pdf, 'Education', $resume['education'], $blue, $blackText, $fontName);
-addSection($pdf, 'Experience', $resume['experience'], $blue, $blackText, $fontName);
-addSection($pdf, 'Projects', $resume['projects'], $blue, $blackText, $fontName);
+// Add resume sections
+addSection($pdf, 'Profile', $resume['profile'], $blue, $blackText);
+addSection($pdf, 'Skills', $resume['skills'], $blue, $blackText);
+addSection($pdf, 'Education', $resume['education'], $blue, $blackText);
+addSection($pdf, 'Experience', $resume['experience'], $blue, $blackText);
+addSection($pdf, 'Projects', $resume['projects'], $blue, $blackText);
 
-// Output PDF for download
+// Output PDF
 $fileName = 'Resume_' . preg_replace('/[^A-Za-z0-9]/', '_', $resume['name']) . '.pdf';
 $pdf->Output($fileName, 'D');
 exit;
